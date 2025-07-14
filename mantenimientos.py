@@ -4,17 +4,26 @@ import pandas as pd
 from datetime import date
 from fpdf import FPDF
 import base64
-import sqlite3
 import json
 
-# conexión global
-conn = sqlite3.connect("ordenes.db", check_same_thread=False)
-c = conn.cursor()
+import psycopg2
+# No necesitas importar sqlite3 si ya no lo usas
+
+# Conexión global a PostgreSQL
+try:
+    # st.secrets['connections.postgresql'] automáticamente cargará la URL de secrets.toml
+    conn = psycopg2.connect(st.secrets['connections.postgresql'].url)
+    c = conn.cursor()
+    # st.success("Conexión a la base de datos PostgreSQL exitosa.") # Puedes descomentar esto para depuración
+except Exception as e:
+    st.error(f"Error al conectar a la base de datos PostgreSQL: {e}")
+    st.stop() # Detiene la ejecución de la app si no hay conexión a la DB
+
 
 # Crear tabla si no existe con las columnas básicas
 c.execute("""
 CREATE TABLE IF NOT EXISTS ordenes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id BIGSERIAL PRIMARY KEY,
     usuario TEXT,
     area TEXT,
     seccion TEXT,
@@ -739,22 +748,26 @@ def generar_pdf(datos):
 
 def crear_orden(datos):
     sql = """
-      INSERT INTO ordenes (
+    INSERT INTO ordenes (
         usuario, area, seccion,
-        responsable, tipo_de_mantenimiento, 
+        responsable, tipo_de_mantenimiento,
         tipo_de_trabajo, descripcionp, prioridad,
         ejecutor, fecha_registro, hora_registro
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    RETURNING id; -- <-- ¡CAMBIO AQUÍ! Añadir RETURNING id
     """
     c.execute(sql, (
         datos["Usuario"], datos["Área"], datos["Sección"],
         datos["Responsable"], datos["Tipo de mantenimiento"],
-        datos["Tipo de trabajo"], datos["Descripción del problema"],datos["Prioridad"],
+        datos["Tipo de trabajo"], datos["Descripción del problema"], datos["Prioridad"],
         datos["Ejecutor"], str(datos["Fecha de registro"]),
         str(datos["Hora de registro"])
     ))
     conn.commit()
-    numero = c.lastrowid  # obtiene el id generado :contentReference[oaicite:6]{index=6}
+
+    # Obtener el id generado para PostgreSQL
+    # <-- ¡CAMBIO AQUÍ! Usar fetchone() después de RETURNING
+    numero = c.fetchone()[0]
     return numero
 
 # Página de formulario

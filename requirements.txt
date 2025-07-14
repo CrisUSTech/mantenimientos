@@ -2,3 +2,4 @@ streamlit
 pandas
 Pillow
 fpdf
+psycopg2-binary
