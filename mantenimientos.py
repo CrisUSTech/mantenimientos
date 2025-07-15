@@ -833,20 +833,20 @@ def pagina_formulario():
         enviar = st.form_submit_button("Guardar")
 
     if enviar:
-	if campos_validos:
-        # Guardar en PostgreSQL y obtener número de orden
-        numero = crear_orden(datos)
-        datos["No. de orden"] = str(numero).zfill(5) # Asigna el ID de la DB al diccionario de datos
+        if campos_validos:
+            # Guardar en PostgreSQL y obtener número de orden
+            numero = crear_orden(datos)
+            datos["No. de orden"] = str(numero).zfill(5) # Asigna el ID de la DB al diccionario de datos
 
-        st.success("✅ ¡Datos guardados correctamente en la base de datos!") # Mensaje de éxito actualizado
+            st.success("✅ ¡Datos guardados correctamente en la base de datos!") # Mensaje de éxito actualizado
 
-        # Generar y mostrar PDF con el número ya actualizado
-        enlace_pdf = generar_pdf(datos)
-        st.markdown(enlace_pdf, unsafe_allow_html=True)
-        st.markdown("---")
-        if st.button("🔙 Volver al inicio", use_container_width=True, key="volver_inicio_exito"):
-            cambiar_pagina("inicio")
-            st.rerun()        
+            # Generar y mostrar PDF con el número ya actualizado
+            enlace_pdf = generar_pdf(datos)
+            st.markdown(enlace_pdf, unsafe_allow_html=True)
+            st.markdown("---")
+            if st.button("🔙 Volver al inicio", use_container_width=True, key="volver_inicio_exito"):
+                cambiar_pagina("inicio")
+                st.rerun()        
         else:
         # manejo de campos incompletos...
 
