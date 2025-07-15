@@ -11,11 +11,9 @@ import psycopg2
 
 # Conexión global a PostgreSQL
 try:
-     # --- ESTE ES EL CAMBIO TEMPORAL PARA DEPURACIÓN ---
-    # ¡REEMPLAZA CON TU URL REAL DE NEON.TECH!
-    # ¡RECUERDA QUE ESTO NO ES SEGURO PARA PRODUCCIÓN!
-    db_url_temp = "postgresql://neondb_owner:npg_87SAoJrXVYBZ@ep-rapid-fire-aeuzi289-pooler.c-2.us-east-2.aws.neon.tech/Cris?sslmode=require&channel_binding=require"
-    conn = psycopg2.connect(db_url_temp)
+    conn = psycopg2.connect(st.secrets['connections.postgresql'].url)
+    c = conn.cursor()
+    # st.success("Conexión a la base de datos PostgreSQL exitosa.")
 except Exception as e:
     st.error(f"Error al conectar a la base de datos PostgreSQL: {e}")
     st.stop() # Detiene la ejecución de la app si no hay conexión a la DB
