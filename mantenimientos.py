@@ -16,7 +16,9 @@ try:
     # st.success("Conexión a la base de datos PostgreSQL exitosa.")
 except Exception as e:
     st.error(f"Error al conectar a la base de datos PostgreSQL: {e}")
-    st.stop() # Detiene la ejecución de la app si no hay conexión a la DB
+    print(f"DEBUG: Error completo de conexión a PostgreSQL: {e}") # <-- ESTA LÍNEA DEBE ESTAR
+    # st.stop() # <-- ESTA LÍNEA DEBE ESTAR COMENTADA O ELIMINADA
+    raise e # <-- ESTA LÍNEA DEBE ESTAR
 
 
 # Crear tabla si no existe con las columnas básicas

@@ -1,5 +1,7 @@
 streamlit
 pandas
-Pillow
-fpdf
 psycopg2-binary
+fpdf
+Pillow
+numpy
+python-dateutil
