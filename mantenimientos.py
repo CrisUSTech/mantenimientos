@@ -170,7 +170,7 @@ def pagina_ordenes():
         if not pendientes.empty:
             orden_id = st.selectbox("Selecciona una orden pendiente", pendientes["id"])
             if st.button("Marcar como finalizada"):
-                c.execute("UPDATE ordenes SET estado = 'Finalizada' WHERE id = ?", (orden_id,))
+                c.execute("UPDATE ordenes SET estado = 'Finalizada' WHERE id = %s", (orden_id,))
                 conn.commit()
                 st.success(f"Orden {orden_id} marcada como finalizada.")
                 st.rerun() # Recargar la página para ver los cambios
@@ -281,10 +281,10 @@ def pagina_mantenimiento():
 
         c.execute("""
             UPDATE ordenes
-            SET ejecutor = ?, paro = ?, interrupcion = ?, fecha_mantenimiento = ?, hora_mantenimiento = ?,
-            fecha_mantenimientof = ?, hora_mantenimientof = ?, servicio = ?,
-            materiales = ?, estado = ? -- Elimina 'cantidad' y 'observaciones' de aquí si se incluyen en 'materiales' JSON
-            WHERE id = ?
+            SET ejecutor = %s, paro = %s, interrupcion = %s, fecha_mantenimiento = %s, hora_mantenimiento = %s,
+            fecha_mantenimientof = %s, hora_mantenimientof = %s, servicio = %s,
+            materiales = %s, estado = %s -- Elimina 'cantidad' y 'observaciones' de aquí si se incluyen en 'materiales' JSON
+            WHERE id = %s
         """, (ejecutor, paro, interrupcion, fecha_mantenimiento.isoformat(), hora_mantenimiento.isoformat(),
             fecha_mantenimientof.isoformat(), hora_mantenimientof.isoformat(), servicio,
             materiales_json, nuevo_estado, orden_id)) # Pasa materiales_json aquí
@@ -833,26 +833,20 @@ def pagina_formulario():
         enviar = st.form_submit_button("Guardar")
 
     if enviar:
-        if campos_validos:
-            # 🗄️ 1. Guardar en SQLite y obtener número de orden
-            numero = crear_orden(datos)
-            datos["No. de orden"] = str(numero).zfill(5)
-            # ✅ 2. Guardar en CSV como haces actualmente
-            archivo = f"{area.lower()}.csv"
-            try:
-                df = pd.read_csv(archivo)
-            except FileNotFoundError:
-                df = pd.DataFrame()
-            df = pd.concat([df, pd.DataFrame([datos])], ignore_index=True)
-            df.to_csv(archivo, index=False)
-            st.success(f"✅ ¡Datos guardados correctamente en {archivo}!")
-            # 📄 3. Generar y mostrar PDF con el número ya actualizado
-            enlace_pdf = generar_pdf(datos)
-            st.markdown(enlace_pdf, unsafe_allow_html=True)
-            st.markdown("---")
-            if st.button("🔙 Volver al inicio", use_container_width=True, key="volver_inicio_exito"):
-                cambiar_pagina("inicio")
-                st.rerun()
+	if campos_validos:
+        # Guardar en PostgreSQL y obtener número de orden
+        numero = crear_orden(datos)
+        datos["No. de orden"] = str(numero).zfill(5) # Asigna el ID de la DB al diccionario de datos
+
+        st.success("✅ ¡Datos guardados correctamente en la base de datos!") # Mensaje de éxito actualizado
+
+        # Generar y mostrar PDF con el número ya actualizado
+        enlace_pdf = generar_pdf(datos)
+        st.markdown(enlace_pdf, unsafe_allow_html=True)
+        st.markdown("---")
+        if st.button("🔙 Volver al inicio", use_container_width=True, key="volver_inicio_exito"):
+            cambiar_pagina("inicio")
+            st.rerun()        
         else:
         # manejo de campos incompletos...
 
