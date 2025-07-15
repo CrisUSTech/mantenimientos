@@ -5,20 +5,21 @@ from datetime import date
 from fpdf import FPDF
 import base64
 import json
-
 import psycopg2
 # No necesitas importar sqlite3 si ya no lo usas
 
+st.write("🔐 secrets cargados:", st.secrets)
+
 # Conexión global a PostgreSQL
 try:
-    conn = psycopg2.connect(st.secrets['connections.postgresql'].url)
+    # Forma usando indexación de diccionarios
+    conn = psycopg2.connect(st.secrets["connections"]["postgresql"]["url"])
     c = conn.cursor()
     # st.success("Conexión a la base de datos PostgreSQL exitosa.")
 except Exception as e:
     st.error(f"Error al conectar a la base de datos PostgreSQL: {e}")
     print(f"DEBUG: Error completo de conexión a PostgreSQL: {e}") # <-- ESTA LÍNEA DEBE ESTAR
-    # st.stop() # <-- ESTA LÍNEA DEBE ESTAR COMENTADA O ELIMINADA
-    raise e # <-- ESTA LÍNEA DEBE ESTAR
+    st.stop()
 
 
 # Crear tabla si no existe con las columnas básicas
@@ -55,15 +56,34 @@ columnas_necesarias = {
     "estado": "TEXT DEFAULT 'Registrada'"
 }
 
-# Obtener columnas existentes
-c.execute("PRAGMA table_info(ordenes)")
-columnas_existentes = [col[1] for col in c.fetchall()]
+# VERIFICAR Y AGREGAR COLUMNAS ADICIONALES SI NO EXISTEN (VERSIÓN PARA POSTGRESQL)
+for col, col_type in columnas_necesarias.items():
+    try:
+        # Verificar si la columna existe en PostgreSQL usando information_schema
+        c.execute(f"""
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = 'public' -- 'public' es el esquema por defecto en PostgreSQL
+                AND table_name = 'ordenes'
+                AND column_name = '{col}'
+            );
+        """)
+        column_exists = c.fetchone()[0]
 
-# Agregar columnas faltantes
-for columna, tipo in columnas_necesarias.items():
-    if columna not in columnas_existentes:
-        c.execute(f"ALTER TABLE ordenes ADD COLUMN {columna} {tipo}")
-conn.commit()
+        if not column_exists:
+            # Añadir columna si no existe
+            c.execute(f"ALTER TABLE ordenes ADD COLUMN {col} {col_type}")
+            conn.commit()
+            st.success(f"Columna '{col}' agregada a la tabla 'ordenes'.")
+    except psycopg2.errors.DuplicateColumn:
+        # Esto maneja el caso de que la columna ya exista (ej. por despliegues concurrentes)
+        conn.rollback() # Revertir la transacción actual en caso de error
+        st.info(f"Columna '{col}' ya existe en la tabla 'ordenes'.")
+    except Exception as e:
+        conn.rollback() # Revertir en caso de cualquier otro error inesperado
+        st.error(f"Error al verificar/agregar columna '{col}': {e}")
+        print(f"DEBUG: Error al verificar/agregar columna '{col}': {e}")
 
 # Cuentas predefinidas (puedes editarlas manualmente)
 CUENTAS = {
