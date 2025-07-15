@@ -8,8 +8,6 @@ import json
 import psycopg2
 # No necesitas importar sqlite3 si ya no lo usas
 
-st.write("🔐 secrets cargados:", st.secrets)
-
 # Conexión global a PostgreSQL
 try:
     # Forma usando indexación de diccionarios
