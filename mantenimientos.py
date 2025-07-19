@@ -97,6 +97,7 @@ CUENTAS = {
     "Carlos": {"password" : "CarM10", "role" : "editor"},
     "Enrique": {"password" : "EnrM11", "role" : "editor"},
     "Mantenimiento": {"password" : "ManM12", "role" : "Mantenimiento"},
+    "Calderas": {"password" : "CalM13", "role" : "user"},
     "Cris": {"password" : "123", "role" : "admin"}
 }
 
