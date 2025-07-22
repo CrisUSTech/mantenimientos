@@ -882,4 +882,4 @@ def main():
         pagina_mantenimiento()
     elif st.session_state.rol in ["admin", "viewer", "shyma"]:
         pagina_ordenes_completas()
-main()'0/'
+main()
