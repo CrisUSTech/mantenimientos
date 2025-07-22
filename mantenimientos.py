@@ -445,7 +445,7 @@ def pagina_inicio():
         if st.button("🚚 Logistica", use_container_width=True):
             cambiar_pagina("formulario", area="Logistica", seccion="General")
         if st.button("🧪 Shyma", use_container_width=True):
-            cambiar_pagina("formulario", area="Shyma", seccion="General")
+            cambiar_pagina("subarea", area="Shyma")
     with col3:
         if st.button("🔬 Laboratorio", use_container_width=True):
             cambiar_pagina("formulario", area="Laboratorio", seccion="General")
