@@ -469,7 +469,7 @@ def pagina_subareas():
         "Baños": ["🏢 Oficinas", "🚨 Vigilancia", "🏭 Planta", "🍽️ Comedor", "🔬 Laboratorio", "🏗️ Producción"],
         "Maquinaria": ["🏭 Planta", "🌳 Externos", "⚙️ Grafito", "📦 Otros"],
         "estructura": ["🛢️ Internos", "🧱 Externos", "⚙️ Grafito", "🏢 Oficinas", "🚨 Vigilancia", "🏭 Planta"],
-        "Shyma": ["🏭 Almacenes","🧱 Seguridad", "🚨 Incendios", "⚙️ Normativas"]
+        "Shyma": ["🏭 Almacenes","🧱 Instalaciones", "🚨 Incendios", "⚙️ Normatividad"]
     }
 
     opciones_area = opciones.get(area, [])
