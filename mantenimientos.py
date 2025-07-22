@@ -90,7 +90,7 @@ CUENTAS = {
     "Laboratorio": {"password" : "LabM03", "role" : "user"},
     "Atalia": {"password" : "AtaM04", "role" : "user"},
     "Ausencia": {"password" : "AusM05", "role" : "user"},
-    "Shyma": {"password" : "ShyM06", "role" : "user"},
+    "Shyma": {"password" : "ShyM06", "role" : "shyma"},
     "Almacen": {"password" : "AlmM07", "role" : "user"},
     "Oficinas": {"password" : "OfiM08", "role" : "user"},
     "Brenda": {"password" : "BreM09", "role" : "viewer"},
@@ -273,8 +273,12 @@ def pagina_mantenimiento():
 # nuevos_materiales = st.text_area("Materiales utilizados", value=orden.get("materiales", "") or "")
 # cantidad = st.text_area("Cantidad", value=orden.get("cantidad", "") or "")
 # nuevas_observaciones = st.text_area("Observaciones", value=orden.get("observaciones", "") or "")
-    nuevo_estado = st.selectbox("Actualizar estado", ["En proceso"], index=0 if orden["estado"] == "Registrada" else 1)
-
+    estado_actual = orden["estado"]
+    if estado_actual == "Registrada":
+        c.execute("UPDATE ordenes SET estado = 'En proceso' WHERE id = %s", (orden_id,))
+        conn.commit()
+        estado_actual = "En proceso"
+    st.markdown(f"**Estado actual:** {estado_actual}")
     
     if st.button("Guardar actualización"):
     # Convierte la lista de diccionarios de materiales a una cadena JSON para guardar
@@ -440,6 +444,8 @@ def pagina_inicio():
             cambiar_pagina("formulario", area="Comedor", seccion="General")
         if st.button("🚚 Logistica", use_container_width=True):
             cambiar_pagina("formulario", area="Logistica", seccion="General")
+        if st.button("🧪 Shyma", use_container_width=True):
+            cambiar_pagina("formulario", area="Shyma", seccion="General")
     with col3:
         if st.button("🔬 Laboratorio", use_container_width=True):
             cambiar_pagina("formulario", area="Laboratorio", seccion="General")
@@ -462,7 +468,8 @@ def pagina_subareas():
         "Tanques": ["🛢️ Internos", "🧱 Externos", "⚙️ Grafito", "🧪 Shyma"],
         "Baños": ["🏢 Oficinas", "🚨 Vigilancia", "🏭 Planta", "🍽️ Comedor", "🔬 Laboratorio", "🏗️ Producción"],
         "Maquinaria": ["🏭 Planta", "🌳 Externos", "⚙️ Grafito", "📦 Otros"],
-        "estructura": ["🛢️ Internos", "🧱 Externos", "⚙️ Grafito", "🏢 Oficinas", "🚨 Vigilancia", "🏭 Planta"]
+        "estructura": ["🛢️ Internos", "🧱 Externos", "⚙️ Grafito", "🏢 Oficinas", "🚨 Vigilancia", "🏭 Planta"],
+        "Shyma": ["🏭 Almacenes","🧱 Seguridad", "🚨 Incendios", "⚙️ Normativas"]
     }
 
     opciones_area = opciones.get(area, [])
@@ -863,16 +870,16 @@ def pagina_formulario():
 def main():
     if st.session_state.pagina == "login":
         pagina_login()
-    if st.session_state.pagina == "inicio" and st.session_state.rol in ["user", "viewer", "admin", "editor"]:
+    if st.session_state.pagina == "inicio" and st.session_state.rol in ["user", "viewer", "admin", "editor", "shyma"]:
         pagina_inicio()
     elif st.session_state.pagina == "subarea":
         pagina_subareas()
-    elif st.session_state.pagina == "formulario" and st.session_state.rol in ["user", "viewer", "admin"]:
+    elif st.session_state.pagina == "formulario" and st.session_state.rol in ["user", "viewer", "admin", "shyma"]:
         pagina_formulario()
     elif st.session_state.pagina == "ordenes" and st.session_state.rol in ["admin", "editor"]:
         pagina_ordenes()
     if st.session_state.rol in ["Mantenimiento", "admin"]:
         pagina_mantenimiento()
-    elif st.session_state.rol in ["admin", "viewer"]:
+    elif st.session_state.rol in ["admin", "viewer", "shyma"]:
         pagina_ordenes_completas()
-main()
+main()'0/'
