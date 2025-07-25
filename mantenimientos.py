@@ -182,7 +182,6 @@ def pagina_ordenes():
     if st.button("🔙 Volver al inicio", use_container_width=True):
         cambiar_pagina("inicio")
 
-
 def pagina_mantenimiento():
     st.title("🛠️ Panel de Mantenimiento")
 
@@ -213,7 +212,7 @@ def pagina_mantenimiento():
     st.subheader("✏️ Completar información de mantenimiento")
     ejecutor = st.text_input("Ejecutor", value=orden.get("ejecutor", "") or "")
     paro = st.selectbox("Paro de equipo", ["si", "no"], index=["si", "no"].index(orden.get("paro", "no")) if orden.get("paro", "no") in ["si", "no"] else 0)
-    interrupcion = st.selectbox("Interrupción de servicios", ["vapor", "agua", "electricidad", "otro (escribirlo)"], 
+    interrupcion = st.selectbox("Interrupción de servicios", ["vapor", "agua", "electricidad", "otro (escribirlo)"],
                                 index=["vapor", "agua", "electricidad", "otro (escribirlo)"].index(orden.get("interrupcion", "vapor")) if orden.get("interrupcion", "vapor") in ["vapor", "agua", "electricidad", "otro (escribirlo)"] else 0)
     fecha_mantenimiento = st.date_input("Fecha de mantenimiento", value=(pd.to_datetime(orden.get("fecha_mantenimiento")) or pd.Timestamp.today()).date())
     hora_mantenimiento = st.time_input("Hora de mantenimiento", value=(pd.to_datetime(orden.get("hora_mantenimiento")) or pd.Timestamp("00:00")).time())
@@ -224,81 +223,63 @@ def pagina_mantenimiento():
 
     st.subheader("Materiales utilizados")
 
-# Inicializa st.session_state.materiales_list si no existe
     if "materiales_list" not in st.session_state:
         st.session_state.materiales_list = []
 
-# Carga los materiales existentes de la orden si están disponibles
-# Esto es crucial para que al editar una orden, los materiales previamente guardados aparezcan.
-# Se asume que en tu DB/CSV, 'materiales' ahora es una cadena JSON de una lista de diccionarios.
     if not st.session_state.materiales_list and orden.get("materiales"):
         try:
-            # Intenta parsear la cadena JSON de materiales de la DB
             parsed_materials = json.loads(orden["materiales"])
             if isinstance(parsed_materials, list):
                 st.session_state.materiales_list = parsed_materials
-            else: # Si no es una lista después de parsear (ej. era solo un string)
+            else:
                 st.session_state.materiales_list = [{"material": str(orden["materiales"]), "cantidad": str(orden.get("cantidad", "")), "observacion": str(orden.get("observaciones", ""))}]
         except (json.JSONDecodeError, TypeError):
-            # Si hay un error al decodificar JSON (ej. datos antiguos o mal formados),
-            # intenta tratarlos como un solo material para compatibilidad.
             st.warning("⚠️ No se pudieron cargar los materiales existentes. Por favor, reintroduce si es necesario.")
             st.session_state.materiales_list = [{"material": str(orden.get("materiales", "")), "cantidad": str(orden.get("cantidad", "")), "observacion": str(orden.get("observaciones", ""))}]
 
-# Muestra los materiales actuales y permite editarlos/eliminarlos
-# (Este bucle crea una fila para cada material en la lista)
     for i, item in enumerate(st.session_state.materiales_list):
         col_qty, col_mat, col_obs, col_del = st.columns([1, 2, 2, 0.5])
         with col_qty:
             item["cantidad"] = st.text_input(f"Cantidad {i+1}", value=item.get("cantidad", ""), key=f"qty_{i}")
         with col_mat:
-            # Asegúrate de que la clave sea 'material' si así la estás guardando en la lista de diccionarios
             item["material"] = st.text_input(f"Material {i+1}", value=item.get("material", ""), key=f"mat_{i}")
         with col_obs:
-            # Asegúrate de que la clave sea 'observacion' si así la estás guardando en la lista de diccionarios
             item["observacion"] = st.text_input(f"Observación {i+1}", value=item.get("observacion", ""), key=f"obs_{i}")
         with col_del:
-            if st.button("🗑️", key=f"delete_{i}"): # Botón para eliminar
+            if st.button("🗑️", key=f"delete_{i}"):
                 st.session_state.materiales_list.pop(i)
-                st.rerun() # Volver a ejecutar para actualizar la interfaz
+                st.rerun()
 
-    # Botón para agregar una nueva fila de material
-    # ¡Este botón debe ir FUERA del bucle for!
     if st.button("➕ Agregar Material"):
-        # Asegúrate de que las claves aquí coincidan con las que usas para los text_input
         st.session_state.materiales_list.append({"material": "", "cantidad": "", "observacion": ""})
-        st.rerun() # Volver a ejecutar para mostrar la nueva fila
+        st.rerun()
 
-# Elimina estas líneas si las tenías:
-# nuevos_materiales = st.text_area("Materiales utilizados", value=orden.get("materiales", "") or "")
-# cantidad = st.text_area("Cantidad", value=orden.get("cantidad", "") or "")
-# nuevas_observaciones = st.text_area("Observaciones", value=orden.get("observaciones", "") or "")
-    estado_actual = orden["estado"]
-    if estado_actual == "Registrada":
+    # Define nuevo_estado aquí
+    nuevo_estado = orden["estado"] # Inicializa con el estado actual de la orden
+    if nuevo_estado == "Registrada":
         c.execute("UPDATE ordenes SET estado = 'En proceso' WHERE id = %s", (orden_id,))
         conn.commit()
-        estado_actual = "En proceso"
-    st.markdown(f"**Estado actual:** {estado_actual}")
-    
+        nuevo_estado = "En proceso" # Actualiza la variable nuevo_estado después de la primera transición
+    st.markdown(f"**Estado actual:** {nuevo_estado}") # Muestra el estado que se aplicará o que ya está
+
     if st.button("Guardar actualización"):
-    # Convierte la lista de diccionarios de materiales a una cadena JSON para guardar
         materiales_json = json.dumps(st.session_state.materiales_list)
 
+        # Ahora `nuevo_estado` ya está definida y tiene el valor correcto ('Registrada' o 'En proceso')
         c.execute("""
             UPDATE ordenes
             SET ejecutor = %s, paro = %s, interrupcion = %s, fecha_mantenimiento = %s, hora_mantenimiento = %s,
             fecha_mantenimientof = %s, hora_mantenimientof = %s, servicio = %s,
-            materiales = %s, estado = %s -- Elimina 'cantidad' y 'observaciones' de aquí si se incluyen en 'materiales' JSON
+            materiales = %s, estado = %s
             WHERE id = %s
         """, (ejecutor, paro, interrupcion, fecha_mantenimiento.isoformat(), hora_mantenimiento.isoformat(),
             fecha_mantenimientof.isoformat(), hora_mantenimientof.isoformat(), servicio,
-            materiales_json, nuevo_estado, orden_id)) # Pasa materiales_json aquí
+            materiales_json, nuevo_estado, orden_id))
         conn.commit()
 
         # Actualizar CSV: Esto también necesita almacenar la cadena JSON
         archivo_csv = f"{orden['area'].lower()}.csv"
         try:
-            # Re-lee el CSV con el mapeo de tipos de datos, asegurando que 'Materiales' sea texto
             dtype_mapping = {
                 "No. de orden": str,
                 "Ejecutor": str,
@@ -309,20 +290,15 @@ def pagina_mantenimiento():
                 "Fecha de mantenimiento final": str,
                 "Hora de mantenimiento final": str,
                 "servicio": str,
-                "Materiales": str, # ¡Importante! Asegura que esta columna sea de tipo string para guardar JSON
-                "Estado": str,
-                # Considera si "Cantidad" y "Observaciones" siguen siendo columnas separadas en tu CSV
-                # Si no las necesitas separadas, puedes eliminarlas de aquí y del DataFrame al leer/escribir.
+                "Materiales": str,
             }
             df_csv = pd.read_csv(archivo_csv, dtype=dtype_mapping)
         except FileNotFoundError:
-            # Si el archivo no existe, crea un DataFrame vacío con las columnas correctas
             df_csv = pd.DataFrame(columns=list(dtype_mapping.keys()))
 
         orden_id_str = str(orden_id).zfill(5)
 
         if orden_id_str not in df_csv["No. de orden"].values:
-            # Crear una nueva fila si no existe la orden
             new_row = {
                 "No. de orden": orden_id_str,
                 "Ejecutor": ejecutor,
@@ -333,28 +309,24 @@ def pagina_mantenimiento():
                 "Fecha de mantenimiento final": fecha_mantenimientof.isoformat(),
                 "Hora de mantenimiento final": hora_mantenimientof.isoformat(),
                 "servicio": servicio,
-                "Materiales": materiales_json, # Guarda el JSON aquí
+                "Materiales": materiales_json,
                 "Estado": nuevo_estado
             }
             df_csv = pd.concat([df_csv, pd.DataFrame([new_row])], ignore_index=True)
         else:
-            # Actualizar la fila existente
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Ejecutor"] = ejecutor
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Paro de equipo"] = paro
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Interrupción de servicios"] = interrupcion
-            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Fecha de mantenimiento"] = fecha_mantenimiento.isoformat()
-            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Hora de mantenimiento"] = hora_mantenimiento.isoformat()
-            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Fecha de mantenimiento final"] = fecha_mantenimientof.isoformat()
-            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Hora de mantenimiento final"] = hora_mantenimientof.isoformat()
+            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Fecha de mantenimiento"] = fecha_mantenimiento.isoformat()
+            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Hora de mantenimiento"] = hora_mantenimiento.isoformat()
+            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Fecha de mantenimiento final"] = fecha_mantenimientof.isoformat()
+            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Hora de mantenimiento final"] = hora_mantenimientof.isoformat()
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "servicio"] = servicio
-            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Materiales"] = materiales_json # Actualiza con el JSON
-            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Cantidad"] = "" # Vacía
-            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Observaciones"] = "" # Vacía
+            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Materiales"] = materiales_json
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Estado"] = nuevo_estado
 
         df_csv.to_csv(archivo_csv, index=False)
 
-        # Prepara los datos para el PDF: pasa la lista estructurada
         datos_pdf = {
             "No. de orden": str(orden_id).zfill(5),
             "Usuario": orden["usuario"],
@@ -375,13 +347,16 @@ def pagina_mantenimiento():
             "Fecha de mantenimiento final": fecha_mantenimientof,
             "Hora de mantenimiento final": hora_mantenimientof,
             "Descripción del servicio realizado": servicio,
-            "Materiales_List": st.session_state.materiales_list, # ¡Pasa la lista estructurada aquí!
+            "Materiales_List": st.session_state.materiales_list,
             "Estado": nuevo_estado
         }
 
-        # Genera el PDF
         enlace_pdf = generar_pdf(datos_pdf)
         st.markdown(enlace_pdf, unsafe_allow_html=True)
+        st.success(f"Orden {orden_id} actualizada correctamente a estado '{nuevo_estado}'.") # Mensaje de éxito
+
+    if st.button("🔙 Volver al inicio", use_container_width=True):
+        cambiar_pagina("inicio")
 
 def pagina_ordenes_completas():
     st.title("📋 Todas las Órdenes de Mantenimiento")
