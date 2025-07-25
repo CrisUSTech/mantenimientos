@@ -317,10 +317,10 @@ def pagina_mantenimiento():
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Ejecutor"] = ejecutor
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Paro de equipo"] = paro
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Interrupción de servicios"] = interrupcion
-            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Fecha de mantenimiento"] = fecha_mantenimiento.isoformat()
-            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Hora de mantenimiento"] = hora_mantenimiento.isoformat()
-            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Fecha de mantenimiento final"] = fecha_mantenimientof.isoformat()
-            df_csv.loc[df[df["No. de orden"] == orden_id_str].index, "Hora de mantenimiento final"] = hora_mantenimientof.isoformat()
+            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Fecha de mantenimiento"] = fecha_mantenimiento.isoformat()
+            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Hora de mantenimiento"] = hora_mantenimiento.isoformat()
+            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Fecha de mantenimiento final"] = fecha_mantenimientof.isoformat()
+            df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Hora de mantenimiento final"] = hora_mantenimientof.isoformat()
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "servicio"] = servicio
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Materiales"] = materiales_json
             df_csv.loc[df_csv["No. de orden"] == orden_id_str, "Estado"] = nuevo_estado
