@@ -355,9 +355,6 @@ def pagina_mantenimiento():
         st.markdown(enlace_pdf, unsafe_allow_html=True)
         st.success(f"Orden {orden_id} actualizada correctamente a estado '{nuevo_estado}'.") # Mensaje de éxito
 
-    if st.button("🔙 Volver al inicio", use_container_width=True):
-        cambiar_pagina("inicio")
-
 def pagina_ordenes_completas():
     st.title("📋 Todas las Órdenes de Mantenimiento")
     df = pd.read_sql_query("""
