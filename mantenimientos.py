@@ -425,6 +425,8 @@ def pagina_inicio():
             cambiar_pagina("formulario", area="Oficinas", seccion="General")
         if st.button("🔩 Calderas", use_container_width=True):
             cambiar_pagina("formulario", area="Calderas", seccion="General")
+        if st.button("🧰 Proyecto", use_container_width=True):
+            cambiar_pagina("formulario", area="Proyecto", seccion="General")
     if "rol" in st.session_state and st.session_state.rol in ["editor", "admin"]:
         st.markdown("---")
         if st.button("📋 Ver órdenes registradas", use_container_width=True):
