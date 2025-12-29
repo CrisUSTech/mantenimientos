@@ -6,7 +6,6 @@ from fpdf import FPDF
 import base64
 import json
 import psycopg2
-# No necesitas importar sqlite3 si ya no lo usas
 
 # Conexión global a PostgreSQL
 try:
@@ -94,7 +93,6 @@ CUENTAS = {
     "Almacen": {"password" : "AlmM07", "role" : "user"},
     "Oficinas": {"password" : "OfiM08", "role" : "user"},
     "Brenda": {"password" : "BreM09", "role" : "viewer"},
-    "Carlos": {"password" : "CarM10", "role" : "editor"},
     "Enrique": {"password" : "EnrM11", "role" : "editor"},
     "Mantenimiento": {"password" : "ManM12", "role" : "Mantenimiento"},
     "Calderas": {"password" : "CalM13", "role" : "user"},
@@ -460,7 +458,6 @@ def pagina_subareas():
     if st.button("🔙 Volver al inicio", use_container_width=True):
         cambiar_pagina("inicio")
 
-
 def generar_pdf(datos):
     pdf = FPDF(format=(279.4, 215.9), unit='mm') # Tamaño carta (ancho, alto)
     pdf.add_page()
@@ -568,7 +565,6 @@ def generar_pdf(datos):
     texto_final_interrupcion = "Interrupción:\n" + "\n".join(lineas_interrupcion)
     pdf.multi_cell(w=col_width, h=row_height, txt=texto_final_interrupcion, border=1, align='L')
 
-
     # Bloque de 'Descripción del problema' con altura fija de 5 líneas
     descripcionp = datos.get("Descripción del problema", "N/A")
     max_lines_desc = 5
@@ -612,7 +608,6 @@ def generar_pdf(datos):
     
     # Se ajusta la posición Y para la siguiente sección, tomando la más baja del bloque actual
     pdf.set_y(max(pdf.get_y(), y_inicial_bloque_problema + (5 * row_height)))
-
 
     # Fila 'Ejecutor'
     y_inicial = pdf.get_y()
@@ -671,7 +666,6 @@ def generar_pdf(datos):
             lineas_servicio.append("...")
     elif not lineas_servicio and servicio:
         lineas_servicio.append(servicio[:int(((col_width*3)-5)/pdf.font_size * 2)] + "...")
-
 
     texto_final_serv = "Descripción del servicio realizado:\n" + "\n".join(lineas_servicio)
     pdf.multi_cell(w=col_width * 3, h=row_height, txt=texto_final_serv, border=0, align='L')
@@ -737,8 +731,8 @@ def generar_pdf(datos):
     pdf.cell(w=col_width, h=0, txt="_________________________", border=0, ln=1, align='C')
     pdf.ln(3)
     pdf.cell(w=col_width, h=0, txt="Técnico", border=0, ln=0, align='C')
-    pdf.cell(w=col_width, h=0, txt="Supervisor", border=0, ln=0, align='C')
-    pdf.cell(w=col_width, h=0, txt="Jefe de área", border=0, ln=1, align='C')
+    pdf.cell(w=col_width, h=0, txt="Solicitante", border=0, ln=0, align='C')
+    pdf.cell(w=col_width, h=0, txt="Coordinador", border=0, ln=1, align='C')
 
     # Guardar PDF y codificarlo en base64 para descarga
     nombre_archivo = "orden_mantenimiento.pdf"
@@ -779,7 +773,7 @@ def pagina_formulario():
 
     with st.form("form_mantenimiento"):
         responsable = st.selectbox("Responsable", [
-            "Carlos Eduardo Villegas Delgado",
+            "Cristhoper Jacob Morales Silva",
             "Enrique Ramirez Ruiz"
         ])
         tipo_de_mantenimiento = st.selectbox("Tipo de mantenimiento", [
