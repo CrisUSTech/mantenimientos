@@ -210,8 +210,8 @@ def pagina_mantenimiento():
     st.subheader("✏️ Completar información de mantenimiento")
     ejecutor = st.text_input("Ejecutor", value=orden.get("ejecutor", "") or "")
     paro = st.selectbox("Paro de equipo", ["si", "no"], index=["si", "no"].index(orden.get("paro", "no")) if orden.get("paro", "no") in ["si", "no"] else 0)
-    interrupcion = st.selectbox("Interrupción de servicios", ["vapor", "agua", "electricidad", "otro (escribirlo)"],
-                                index=["vapor", "agua", "electricidad", "otro (escribirlo)"].index(orden.get("interrupcion", "vapor")) if orden.get("interrupcion", "vapor") in ["vapor", "agua", "electricidad", "otro (escribirlo)"] else 0)
+    interrupcion = st.selectbox("Interrupción de servicios", ["vapor", "agua", "electricidad", "valvulas", "aceite", "otro", "ninguno"],
+                                index=["vapor", "agua", "electricidad", "valvulas", "aceite", "otro", "ninguno"].index(orden.get("interrupcion", "ninguno")) if orden.get("interrupcion", "ninguno") in ["vapor", "agua", "electricidad", "valvulas", "aceite", "otro", "ninguno"] else 0)
     fecha_mantenimiento = st.date_input("Fecha de mantenimiento", value=(pd.to_datetime(orden.get("fecha_mantenimiento")) or pd.Timestamp.today()).date())
     hora_mantenimiento = st.time_input("Hora de mantenimiento", value=(pd.to_datetime(orden.get("hora_mantenimiento")) or pd.Timestamp("00:00")).time())
     fecha_mantenimientof = st.date_input("Fecha de mantenimiento final", value=(pd.to_datetime(orden.get("fecha_mantenimientof")) or pd.Timestamp.today()).date())
@@ -782,7 +782,7 @@ def pagina_formulario():
         fecha = st.date_input("Fecha del registro", value=date.today())
         hora = st.time_input("Hora de registro")
         tipo_de_trabajo = st.selectbox("Tipo de trabajo", [
-            "Mecanico", "Electrico", "Ambos"
+            "Mecanico", "Electrico", "Limpieza", "Calibración", "Inspección", "Otro"
         ])
         prioridad = st.selectbox("Prioridad", [
             "Alta", "Media", "Baja"
